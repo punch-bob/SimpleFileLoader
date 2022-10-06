@@ -40,6 +40,7 @@ public class ClientListener extends Thread
                 socket.close();
                 inSocketStream.close();
                 outSocketStream.close();
+                writer.close();
             }
         }
         catch (IOException e) {}

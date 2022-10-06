@@ -58,6 +58,11 @@ public class Client implements Runnable {
                 e.printStackTrace();
             }
         }
+        try {
+            outputStream.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     @Override

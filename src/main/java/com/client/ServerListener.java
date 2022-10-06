@@ -38,9 +38,10 @@ public class ServerListener extends Thread{
             }
         }
         try {
-            socket.close();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+            if (!socket.isClosed()) {
+                socket.close();
+                inputStream.close();
+            }
+        } catch (IOException e) {}
     }
 }
