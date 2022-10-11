@@ -5,8 +5,11 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
+import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 
 import com.common.Message;
 
@@ -16,7 +19,8 @@ public class ClientListener extends Thread
     private Socket socket;
     private ObjectInputStream inSocketStream;
     private ObjectOutputStream outSocketStream;
-    private FileOutputStream writer ;
+    private FileOutputStream writer;
+    private MessageDigest digest;
     private String filename;
     private int fileSize;
     private boolean lastPart = false;
@@ -27,6 +31,12 @@ public class ClientListener extends Thread
     {
         this.server = server;
         this.socket = socket;
+        this.digest = null;
+        try {
+            this.digest = MessageDigest.getInstance("MD5");
+        } catch (NoSuchAlgorithmException e) {
+            e.printStackTrace();
+        }
         outSocketStream  = new ObjectOutputStream(socket.getOutputStream());
         inSocketStream = new ObjectInputStream(socket.getInputStream());
         socket.setSoTimeout(1000);
@@ -78,6 +88,7 @@ public class ClientListener extends Thread
                 writer.write(message.getData(), 0, message.getSize());
                 writer.flush();
                 readedBytes = message.getSize();
+                digest.update(message.getData(), 0, message.getSize());
             } catch (IOException e) {
                 e.printStackTrace();
             }
@@ -117,7 +128,9 @@ public class ClientListener extends Thread
                 currBytes = 0;
             }
         } 
-        if (readedBytes == fileSize) {
+
+        int checksum = ByteBuffer.wrap(digest.digest()).getInt();
+        if (checksum == fileSize) {
             sendMessage("The file has been delivered completely!\n");
         } else {
             sendMessage("The file has been delivered not completely!\n");
